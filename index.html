@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content=" ">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content=" ">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picrok</title>
+
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content=" ">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  background:linear-gradient(135deg,#0f1115,#1c1f27);
+  font-family:system-ui,sans-serif;
+  color:#fff;
+  padding-top:20px;
+}
+#box{
+  width:92%;
+  max-width:420px;
+  max-height:95vh;
+  overflow-y:auto;
+  scrollbar-width:none;
+  padding:18px;
+  border-radius:20px;
+  background:rgba(22,25,34,.75);
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+}
+#box::-webkit-scrollbar{display:none}
+
+textarea{
+  width:100%;
+  min-height:90px;
+  max-height:140px;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  background:rgba(15,17,21,.6);
+  color:#fff;
+  resize:none;
+}
+#negativePrompt{
+  min-height:60px;
+  max-height:100px;
+  background:rgba(15,17,21,.45);
+  color:#ffb3b3;
+  font-size:13px;
+  margin-top:6px;
+}
+
+.selectBox{
+  width:48%;
+  padding:8px;
+  border-radius:10px;
+  border:none;
+  background:rgba(15,17,21,.6);
+  color:#fff;
+}
+
+button{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:#4f8cff;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+button:hover{background:#3670e0}
+
+.group{margin-top:14px}
+.group h4{margin:6px 0;font-size:13px;opacity:.85}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:8px;
+}
+.toggle{
+  padding:8px;
+  background:rgba(28,31,39,.6);
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+}
+.toggle.active{background:#4f8cff}
+
+#result{
+  width:100%;
+  margin-top:12px;
+  border-radius:12px;
+}
+
+#gallery{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+  gap:8px;
+}
+#gallery img{
+  width:100%;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay img{
+  max-width:90%;
+  max-height:75%;
+}
+#overlayControls{
+  position:absolute;
+  bottom:20px;
+  display:flex;
+  gap:10px;
+}
+#overlayControls button{width:auto}
+.danger{background:#ff4d4d}
+
+footer{
+  text-align:center;
+  margin-top:12px;
+  font-size:11px;
+  opacity:.7;
+}
+</style>
+</head>
+
+<body>
+<div id="box">
+<h3 style="text-align:center">Picrok</h3>
+
+<textarea id="promptText" placeholder="Describe your image"></textarea>
+
+<label style="font-size:13px">
+<input type="checkbox" id="negToggle" checked> Enable Negative Prompt
+</label>
+
+<textarea id="negativePrompt" placeholder="blurry, watermark, extra fingers"></textarea>
+
+<div class="group">
+<h4>Presets</h4>
+<div class="grid" id="presets">
+<div class="toggle">Cinematic</div>
+<div class="toggle">Portrait</div>
+<div class="toggle">Landscape</div>
+<div class="toggle">Product</div>
+<div class="toggle">Macro</div>
+<div class="toggle">Fantasy Art</div>
+<div class="toggle">Sci-Fi</div>
+<div class="toggle">Concept Art</div>
+</div>
+</div>
+
+<div class="group">
+<h4>Styles</h4>
+<div class="grid" id="styles">
+<div class="toggle">Photorealistic</div>
+<div class="toggle">Ultra detailed</div>
+<div class="toggle">HDR</div>
+<div class="toggle">Soft lighting</div>
+<div class="toggle">Sharp focus</div>
+<div class="toggle">Depth of field</div>
+</div>
+</div>
+
+<div style="display:flex;gap:8px">
+<select id="aspect" class="selectBox">
+<option value="1:1">1:1</option>
+<option value="16:9">16:9</option>
+<option value="4:3">4:3</option>
+<option value="3:4">3:4</option>
+</select>
+<select id="imgSize" class="selectBox">
+<option>512</option>
+<option>1024</option>
+<option>1536</option>
+<option>2048</option>
+</select>
+</div>
+
+<button id="generateBtn">Generate Image</button>
+<button id="resetBtn">Reset</button>
+
+<img id="result">
+<div id="gallery"></div>
+
+<footer>© Manik Roy 2025</footer>
+</div>
+
+<div id="overlay">
+<img id="overlayImg">
+<div id="overlayControls">
+<button id="downloadBtn">Download</button>
+<button id="deleteBtn" class="danger">Delete</button>
+<button id="closeBtn">Close</button>
+</div>
+</div>
+
+<script>
+/* TOGGLES */
+document.querySelectorAll('.toggle').forEach(t=>{
+  t.onclick=()=>t.classList.toggle('active');
+});
+
+/* GENERATE */
+generateBtn.onclick=()=>{
+  if(!promptText.value.trim())return alert("Enter prompt");
+  let p=promptText.value;
+  document.querySelectorAll('.toggle.active')
+    .forEach(t=>p+=', '+t.textContent);
+  if(negToggle.checked && negativePrompt.value)
+    p+=' --no: '+negativePrompt.value;
+
+  const size=+imgSize.value;
+  let w=size,h=size;
+  if(aspect.value==="16:9")h=Math.round(size*9/16);
+  if(aspect.value==="4:3")h=Math.round(size*3/4);
+  if(aspect.value==="3:4")h=Math.round(size*4/3);
+
+  const src=`https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=${w}&height=${h}&seed=${Date.now()}`;
+  result.src=src;
+  save(src);
+};
+
+/* GALLERY */
+function save(src){
+  const g=JSON.parse(localStorage.picrok||"[]");
+  g.unshift(src);
+  localStorage.picrok=JSON.stringify(g);
+  render();
+}
+function render(){
+  gallery.innerHTML="";
+  JSON.parse(localStorage.picrok||"[]").forEach((s,i)=>{
+    const img=document.createElement("img");
+    img.src=s;
+    img.onclick=()=>open(i);
+    gallery.appendChild(img);
+  });
+}
+let idx=0;
+function open(i){
+  idx=i;
+  overlayImg.src=JSON.parse(localStorage.picrok)[i];
+  overlay.style.display="flex";
+}
+closeBtn.onclick=()=>overlay.style.display="none";
+deleteBtn.onclick=()=>{
+  const g=JSON.parse(localStorage.picrok);
+  g.splice(idx,1);
+  localStorage.picrok=JSON.stringify(g);
+  overlay.style.display="none";
+  render();
+};
+downloadBtn.onclick=()=>{
+  const a=document.createElement("a");
+  a.href=overlayImg.src;
+  a.download="picrok.png";
+  a.click();
+};
+resetBtn.onclick=()=>{
+  promptText.value="";
+  negativePrompt.value="";
+  document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('active'));
+  result.src="";
+};
+window.onload=render;
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Picrok PWA ready'))
+      .catch(err => console.error('SW failed', err));
+  });
+}
+</script>
+
+</body>
+</html>
