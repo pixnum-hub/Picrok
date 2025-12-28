@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content=" ">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picrok</title>
+
+<style>
+*{box-sizing:border-box}
+
+/* BODY */
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  background:linear-gradient(135deg,#0f1115,#1c1f27);
+  font-family:system-ui,sans-serif;
+  color:#fff;
+  overflow:hidden;
+}
+
+/* APP FRAME */
+#box{
+  width:100%;
+  max-width:420px;
+  height:100vh;
+  padding:16px;
+  overflow-y:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  background:rgba(22,25,34,.75);
+}
+#box::-webkit-scrollbar{display:none}
+
+/* TEXTAREA */
+textarea{
+  width:100%;
+  min-height:120px;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  resize:none;
+  background:rgba(15,17,21,.6);
+  color:#fff;
+  font-size:15px;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:#4f8cff;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+button:hover{background:#3670e0}
+
+/* GROUPS */
+.group{margin-top:16px}
+.group h4{margin:6px 0;font-size:13px;opacity:.8}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:8px;
+}
+
+/* TOGGLE */
+.toggle{
+  padding:8px;
+  font-size:13px;
+  background:rgba(28,31,39,.6);
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+}
+.toggle.active{background:#4f8cff}
+
+/* SELECT */
+.selectRow{display:flex;gap:8px}
+select{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:10px;
+  background:rgba(15,17,21,.6);
+  color:#fff;
+}
+
+/* RESULT */
+#result{
+  width:100%;
+  margin-top:12px;
+  border-radius:12px;
+}
+
+/* GALLERY */
+#gallery{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+  gap:8px;
+}
+#gallery img{
+  width:100%;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* IMAGE OVERLAY */
+#imgOverlay{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,.95);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  flex-direction:column;
+}
+#imgOverlay img{
+  max-width:95%;
+  max-height:80%;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+#imgOverlay button{
+  margin:0;
+  flex:1;
+}
+#imgOverlay div{
+  display:flex;
+  gap:12px;
+  width:95%;
+  max-width:400px;
+  justify-content:center;
+}
+</style>
+</head>
+
+<body>
+<div id="box">
+
+<h3 style="text-align:center">Picrok</h3>
+
+<textarea id="promptText" placeholder="Describe your image..."></textarea>
+
+<div class="selectRow">
+  <select id="aspect">
+    <option value="1:1">1:1</option>
+    <option value="16:9">16:9</option>
+    <option value="9:16">9:16</option>
+    <option value="4:3">4:3</option>
+    <option value="3:4">3:4</option>
+  </select>
+  <select id="imgSize">
+    <option value="512">512</option>
+    <option value="768">768</option>
+    <option value="1024">1024</option>
+    <option value="1536">1536</option>
+  </select>
+</div>
+
+<!-- PRESETS -->
+<div class="group">
+<h4>Presets</h4>
+<div class="grid" id="presets">
+  <div class="toggle">Cinematic</div>
+  <div class="toggle">Portrait</div>
+  <div class="toggle">Landscape</div>
+  <div class="toggle">Product</div>
+  <div class="toggle">Macro</div>
+  <div class="toggle">Street Photography</div>
+  <div class="toggle">Fantasy Art</div>
+  <div class="toggle">Sci-Fi</div>
+  <div class="toggle">Concept Art</div>
+</div>
+</div>
+
+<!-- STYLES -->
+<div class="group">
+<h4>Styles</h4>
+<div class="grid" id="styles">
+  <div class="toggle">Photorealistic</div>
+  <div class="toggle">Hyperrealistic</div>
+  <div class="toggle">Ambient Occlusion</div>
+  <div class="toggle">Ultra detailed</div>
+  <div class="toggle">HDR</div>
+  <div class="toggle">Soft lighting</div>
+  <div class="toggle">Sharp focus</div>
+  <div class="toggle">Depth of field</div>
+  <div class="toggle">Studio lighting</div>
+  <div class="toggle">High contrast</div>
+  <div class="toggle">Minimal noise</div>
+</div>
+</div>
+
+<button id="generateBtn">Generate Image</button>
+<button id="resetBtn">Reset</button>
+
+<img id="result">
+<div id="gallery"></div>
+
+<p style="text-align:center;font-size:11px;margin:12px 0">
+© Manik Roy 2025. All Rights Reserved.
+</p>
+
+</div>
+
+<!-- IMAGE OVERLAY -->
+<div id="imgOverlay">
+  <img id="overlayImg">
+  <div>
+    <button id="saveOverlayBtn">Save</button>
+    <button id="deleteOverlayBtn">Delete</button>
+    <button id="downloadOverlayBtn">Download</button>
+    <button id="closeOverlayBtn">Close</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* Toggle logic */
+document.querySelectorAll('.toggle').forEach(t=>{
+  t.onclick=()=>t.classList.toggle('active');
+});
+
+/* Reset */
+resetBtn.onclick=()=>{
+  promptText.value="";
+  document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('active'));
+  result.src="";
+};
+
+/* Generate */
+generateBtn.onclick=()=>{
+  if(!promptText.value.trim()) return alert("Enter a prompt");
+
+  const base = promptText.value.trim();
+  const presetText = [...presets.querySelectorAll('.active')].map(e=>e.textContent).join(', ');
+  const styleText = [...styles.querySelectorAll('.active')].map(e=>e.textContent).join(', ');
+
+  let prompt = base;
+  if(presetText) prompt += ', ' + presetText;
+  if(styleText) prompt += ', ' + styleText;
+
+  const size = +imgSize.value;
+  let w = size, h = size;
+
+  if (aspect.value === "16:9") h = Math.round(size * 9 / 16);
+  if (aspect.value === "9:16") w = Math.round(size * 9 / 16);
+  if (aspect.value === "4:3") h = Math.round(size * 3 / 4);
+  if (aspect.value === "3:4") h = Math.round(size * 4 / 3);
+
+  const src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${Date.now()}`;
+  result.src = src;
+  saveToGallery(src);
+};
+
+/* Gallery */
+function saveToGallery(src){
+  let g = JSON.parse(localStorage.getItem("picrokGallery")||"[]");
+  g.unshift(src);
+  localStorage.setItem("picrokGallery",JSON.stringify(g));
+  renderGallery();
+}
+
+const overlay = $("imgOverlay");
+const overlayImg = $("overlayImg");
+const saveBtn = $("saveOverlayBtn");
+const deleteBtn = $("deleteOverlayBtn");
+const downloadBtn = $("downloadOverlayBtn");
+const closeBtn = $("closeOverlayBtn");
+
+// Open overlay
+function openOverlay(src){
+  overlayImg.src = src;
+  overlay.style.display = "flex";
+}
+
+// Close overlay
+function closeOverlay(){ overlay.style.display = "none"; }
+
+// Render gallery
+function renderGallery(){
+  gallery.innerHTML="";
+  let g = JSON.parse(localStorage.getItem("picrokGallery")||"[]");
+  g.forEach((src,i)=>{
+    const img = document.createElement("img");
+    img.src = src;
+    img.onclick = ()=>openOverlay(src);
+    gallery.appendChild(img);
+  });
+}
+renderGallery();
+
+// Overlay buttons
+saveBtn.onclick = ()=>{
+  let g = JSON.parse(localStorage.getItem("picrokGallery")||"[]");
+  if(!g.includes(overlayImg.src)) g.unshift(overlayImg.src);
+  localStorage.setItem("picrokGallery",JSON.stringify(g));
+  renderGallery();
+  alert("Saved!");
+};
+
+deleteBtn.onclick = ()=>{
+  let g = JSON.parse(localStorage.getItem("picrokGallery")||"[]");
+  g = g.filter(x=>x!==overlayImg.src);
+  localStorage.setItem("picrokGallery",JSON.stringify(g));
+  renderGallery();
+  closeOverlay();
+};
+
+downloadBtn.onclick = ()=>{
+  const link = document.createElement("a");
+  link.href = overlayImg.src;
+  link.download = "picrok_image.png";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+closeBtn.onclick = closeOverlay;
+overlay.onclick = e=>{
+  if(e.target===overlay) closeOverlay();
+};
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Picrok PWA ready'))
+      .catch(err => console.error('SW failed', err));
+  });
+}
+</script>
+
+</body>
+</html>
