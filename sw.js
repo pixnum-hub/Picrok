@@ -20,7 +20,7 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
-  if (e.request.url.includes("pollinations.ai")) return;
+  if(e.request.url.includes("pollinations.ai")) return;
   e.respondWith(
     caches.match(e.request).then(res => res || fetch(e.request))
   );
