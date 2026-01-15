@@ -1,334 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Picrok – AI Image Generator</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Picrok</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
-body{
+/* ===== THEME ===== */
+:root {
+  --bg:#f5f5f5;
+  --card:#ffffff;
+  --text:#111;
+  --accent:#6c63ff;
+}
+
+body.dark {
+  --bg:#0f1115;
+  --card:#1a1d24;
+  --text:#f1f1f1;
+}
+
+body {
   margin:0;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  background:linear-gradient(135deg,#0f1115,#1c1f27);
-  font-family:system-ui,sans-serif;
-  color:#fff;
-  padding-top:20px;
+  font-family:system-ui, sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
-#box{
-  width:90%;
-  max-width:420px;
-  max-height:95vh;
-  overflow-y:auto;
-  padding:20px;
-  border-radius:20px;
-  backdrop-filter:blur(12px);
-  background:rgba(22,25,34,0.75);
-  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+
+/* ===== APP FRAME ===== */
+.app {
+  position:relative;
+  height:100vh;
+  overflow-y:scroll;
+  padding:16px;
   scrollbar-width:none;
+  -ms-overflow-style:none;
 }
-#box::-webkit-scrollbar{display:none;}
+.app::-webkit-scrollbar { width:0; }
 
-textarea{
-  width:100%;
-  height:110px;
-  padding:12px;
-  border-radius:12px;
-  border:none;
-  background:rgba(15,17,21,0.6);
-  color:#fff;
-  margin-bottom:8px;
-  resize:none;
-  font-size:14px;
-  box-sizing:border-box;
-}
-button{
-  margin-top:10px;
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:15px;
-  background:#4f8cff;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
-button:disabled{opacity:.5}
-img{width:100%;border-radius:12px;margin-top:12px}
-
-.group{margin-top:14px}
-.group h4{margin:6px 0;font-size:13px;opacity:.85}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-  gap:8px;
-}
-.toggle{
-  padding:8px;
-  font-size:13px;
-  background:rgba(28,31,39,0.6);
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
-}
-.toggle.active{background:#4f8cff}
-
-.selectRow{display:flex;gap:8px}
-select{
-  flex:1;
-  padding:6px;
-  border-radius:10px;
-  border:none;
-  background:rgba(15,17,21,0.6);
-  color:#fff;
-}
-
-#progressWrap{
-  width:100%;
-  background:rgba(28,31,39,0.6);
-  border-radius:8px;
-  height:10px;
-  margin-top:10px;
-  display:none;
-}
-#progressBar{
-  width:0%;
-  height:100%;
-  background:#4f8cff;
-}
-
-#statusBar{
-  display:flex;
-  justify-content:space-between;
-  font-size:11px;
-  opacity:.8;
-  margin-top:6px;
-}
-
-#gallery{
-  margin-top:14px;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
-  gap:8px;
-}
-.thumb{position:relative}
-.thumb img{width:100%;border-radius:10px;cursor:pointer}
-.deleteBtn{
+/* ===== DARK TOGGLE ===== */
+#themeToggle {
   position:absolute;
-  top:4px;
-  right:4px;
-  background:red;
-  border:none;
-  color:#fff;
-  width:20px;
-  height:20px;
+  top:12px;
+  right:12px;
+  width:42px;
+  height:42px;
   border-radius:50%;
+  border:none;
+  background:var(--card);
+  color:var(--text);
+  font-size:20px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+  z-index:1000;
+}
+
+/* ===== UI ===== */
+.card {
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+textarea {
+  width:100%;
+  min-height:120px;
+  resize:none;
+  padding:12px;
+  font-size:16px;
+}
+
+select, button {
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  font-size:14px;
+}
+
+button.primary {
+  background:var(--accent);
+  color:#fff;
+}
+
+/* ===== PRESETS ===== */
+.pills { display:flex; flex-wrap:wrap; gap:8px; }
+.pill {
+  padding:6px 12px;
+  border-radius:999px;
+  background:#ddd;
+  cursor:pointer;
+}
+body.dark .pill { background:#2a2d36; }
+
+/* ===== GALLERY ===== */
+.gallery {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:10px;
+}
+.gallery img {
+  width:100%;
+  border-radius:10px;
   cursor:pointer;
 }
 </style>
 </head>
 
 <body>
-<div id="box">
-<h3 style="text-align:center">Picrok – AI Image Generator</h3>
+<div class="app" id="app">
 
-<textarea id="promptText" placeholder="Describe your image..."></textarea>
+<button id="themeToggle">🌙</button>
 
-<div id="statusBar">
-  <span id="quotaText"></span>
-  <span id="cooldownText"></span>
+<!-- PROMPT -->
+<div class="card">
+  <textarea id="prompt" placeholder="Describe your image…"></textarea>
 </div>
 
-<div class="selectRow">
-  <select id="aspect">
+<!-- PRESETS -->
+<div class="card">
+  <strong>Presets</strong>
+  <div class="pills">
+    <div class="pill" onclick="addPreset('cinematic lighting')">Cinematic</div>
+    <div class="pill" onclick="addPreset('ultra realistic')">Realistic</div>
+    <div class="pill" onclick="addPreset('anime style')">Anime</div>
+    <div class="pill" onclick="addPreset('3d render')">3D</div>
+  </div>
+</div>
+
+<!-- ASPECT -->
+<div class="card">
+  <select id="ratio">
     <option value="1:1">1:1</option>
+    <option value="4:3">4:3</option>
     <option value="16:9">16:9</option>
     <option value="9:16">9:16</option>
-    <option value="4:3">4:3</option>
-    <option value="3:4">3:4</option>
-  </select>
-  <select id="imgSize">
-    <option value="256">256</option>
-    <option value="512" selected>512</option>
-    <option value="768">768</option>
-    <option value="1024">1024</option>
   </select>
 </div>
 
-<div class="group">
-<h4>Presets</h4>
-<div class="grid" id="presets">
-  <div class="toggle">Cinematic</div>
-  <div class="toggle">Portrait</div>
-  <div class="toggle">Landscape</div>
-  <div class="toggle">Product</div>
-  <div class="toggle">Fantasy</div>
-  <div class="toggle">Sci-Fi</div>
-</div>
+<!-- GENERATE -->
+<div class="card">
+  <button class="primary" onclick="generate()">Generate</button>
 </div>
 
-<div class="group">
-<h4>Styles</h4>
-<div class="grid" id="styles">
-  <div class="toggle">Photorealistic</div>
-  <div class="toggle">HDR</div>
-  <div class="toggle">Ultra detailed</div>
-  <div class="toggle">Soft lighting</div>
-  <div class="toggle">Sharp focus</div>
-</div>
+<!-- STATUS -->
+<div class="card" id="status" hidden></div>
+
+<!-- GALLERY -->
+<div class="card">
+  <div class="gallery" id="gallery"></div>
 </div>
 
-<button id="generateBtn">Generate Image</button>
-<button id="resetBtn">Reset</button>
-
-<div id="progressWrap"><div id="progressBar"></div></div>
-
-<img id="result">
-<div id="gallery"></div>
-
-<p style="text-align:center;font-size:11px;margin-top:12px">
-© Manik Roy 2025. All Rights Reserved.
-</p>
 </div>
 
 <script>
-/* CONFIG */
-const RATE_LIMIT = 15;          // seconds
-const DAILY_LIMIT = 10;
-const BUSY_TIME = 2 * 60 * 1000;
-let failCount = 0;
+/* ===== THEME ===== */
+const toggle=document.getElementById("themeToggle");
+function setTheme(t){
+ document.body.classList.toggle("dark",t==="dark");
+ toggle.textContent=t==="dark"?"☀️":"🌙";
+ localStorage.setItem("theme",t);
+}
+toggle.onclick=()=>setTheme(
+ document.body.classList.contains("dark")?"light":"dark"
+);
+setTheme(localStorage.getItem("theme")||"light");
 
-/* TOGGLES */
-document.querySelectorAll('.toggle').forEach(t=>{
-  t.onclick=()=>t.classList.toggle('active');
-});
-
-/* RATE LIMIT */
-function canGenerate(){
-  const last=+localStorage.getItem("picrok_last")||0;
-  const diff=(Date.now()-last)/1000;
-  if(diff<RATE_LIMIT){
-    updateCooldown(RATE_LIMIT-diff);
-    return false;
-  }
-  localStorage.setItem("picrok_last",Date.now());
-  return true;
+/* ===== PRESET INSERT ===== */
+function addPreset(text){
+ const p=document.getElementById("prompt");
+ p.value = p.value ? p.value + ", " + text : text;
 }
 
-/* DAILY QUOTA */
-function canGenerateToday(){
-  const today=new Date().toDateString();
-  let data=JSON.parse(localStorage.getItem("picrok_daily")||"{}");
-  if(data.date!==today){data={date:today,count:0}}
-  if(data.count>=DAILY_LIMIT){
-    alert("Daily limit reached. Try tomorrow.");
-    return false;
-  }
-  data.count++;
-  localStorage.setItem("picrok_daily",JSON.stringify(data));
-  updateQuota();
-  return true;
+/* ===== GENERATE MOCK ===== */
+function generate(){
+ const s=document.getElementById("status");
+ s.hidden=false;
+ s.textContent="Generating…";
+ setTimeout(()=>{
+   s.textContent="Done ✔";
+   const img=document.createElement("img");
+   img.src="https://picsum.photos/400?"+Date.now();
+   document.getElementById("gallery").prepend(img);
+ },1500);
 }
 
-/* SERVER BUSY */
-function markFail(){
-  failCount++;
-  if(failCount>=3){
-    localStorage.setItem("picrok_busy",Date.now()+BUSY_TIME);
-  }
+/* ===== SERVICE WORKER ===== */
+if("serviceWorker"in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("sw.js");
+ });
 }
-function isBusy(){
-  const until=+localStorage.getItem("picrok_busy")||0;
-  if(Date.now()>until){localStorage.removeItem("picrok_busy");failCount=0;return false;}
-  return until>Date.now();
-}
-
-/* UI */
-function updateQuota(){
-  let d=JSON.parse(localStorage.getItem("picrok_daily")||"{}");
-  quotaText.textContent=`${DAILY_LIMIT-(d.count||0)} / day left`;
-}
-function updateCooldown(sec){
-  cooldownText.textContent=`Wait ${Math.ceil(sec)}s`;
-  setTimeout(()=>cooldownText.textContent="",1000);
-}
-updateQuota();
-
-/* RESET */
-resetBtn.onclick=()=>{
-  promptText.value="";
-  document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('active'));
-  result.src="";
-};
-
-/* GENERATE */
-generateBtn.onclick=()=>{
-  if(!promptText.value.trim()) return alert("Enter a prompt");
-  if(isBusy()) return alert("Server busy. Please wait.");
-  if(!canGenerate()) return;
-  if(!canGenerateToday()) return;
-
-  let p=0;
-  progressWrap.style.display="block";
-  const i=setInterval(()=>{
-    p+=10;progressBar.style.width=p+"%";
-    if(p>=100){
-      clearInterval(i);
-      progressWrap.style.display="none";
-      generateImage();
-    }
-  },80);
-};
-
-function generateImage(){
-  const base=promptText.value;
-  const pre=[...presets.querySelectorAll('.active')].map(e=>e.textContent).join(", ");
-  const sty=[...styles.querySelectorAll('.active')].map(e=>e.textContent).join(", ");
-  let prompt=base+(pre?", "+pre:"")+(sty?", "+sty:"");
-
-  let size=+imgSize.value,w=size,h=size;
-  if(aspect.value=="16:9") h=Math.round(size*9/16);
-  if(aspect.value=="9:16") w=Math.round(size*9/16);
-  if(aspect.value=="4:3") h=Math.round(size*3/4);
-  if(aspect.value=="3:4") w=Math.round(size*3/4);
-
-  const src=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${Date.now()}`;
-  result.src=src;
-
-  result.onerror=()=>{
-    markFail();
-    alert("Image service unavailable.");
-  };
-
-  saveGallery(src);
-}
-
-/* GALLERY */
-function saveGallery(src){
-  let g=JSON.parse(localStorage.getItem("picrokGallery")||"[]");
-  g.unshift(src);
-  localStorage.setItem("picrokGallery",JSON.stringify(g));
-  renderGallery();
-}
-function renderGallery(){
-  gallery.innerHTML="";
-  let g=JSON.parse(localStorage.getItem("picrokGallery")||"[]");
-  g.forEach((src,i)=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    d.innerHTML=`<img src="${src}"><button class="deleteBtn">×</button>`;
-    d.querySelector("img").onclick=()=>result.src=src;
-    d.querySelector("button").onclick=()=>{
-      g.splice(i,1);
-      localStorage.setItem("picrokGallery",JSON.stringify(g));
-      renderGallery();
-    };
-    gallery.appendChild(d);
-  });
-}
-renderGallery();
 </script>
+
 </body>
 </html>
