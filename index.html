@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Picrok</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+/* ===== THEME ===== */
+:root {
+  --bg:#f5f5f5;
+  --card:#ffffff;
+  --text:#111;
+  --accent:#6c63ff;
+}
+
+body.dark {
+  --bg:#0f1115;
+  --card:#1a1d24;
+  --text:#f1f1f1;
+}
+
+body {
+  margin:0;
+  font-family:system-ui, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ===== APP FRAME ===== */
+.app {
+  position:relative;
+  height:100vh;
+  overflow-y:scroll;
+  padding:16px;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.app::-webkit-scrollbar { width:0; }
+
+/* ===== DARK TOGGLE ===== */
+#themeToggle {
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:none;
+  background:var(--card);
+  color:var(--text);
+  font-size:20px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+  z-index:1000;
+}
+
+/* ===== UI ===== */
+.card {
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+textarea {
+  width:100%;
+  min-height:120px;
+  resize:none;
+  padding:12px;
+  font-size:16px;
+}
+
+select, button {
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  font-size:14px;
+}
+
+button.primary {
+  background:var(--accent);
+  color:#fff;
+}
+
+/* ===== PRESETS ===== */
+.pills { display:flex; flex-wrap:wrap; gap:8px; }
+.pill {
+  padding:6px 12px;
+  border-radius:999px;
+  background:#ddd;
+  cursor:pointer;
+}
+body.dark .pill { background:#2a2d36; }
+
+/* ===== GALLERY ===== */
+.gallery {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:10px;
+}
+.gallery img {
+  width:100%;
+  border-radius:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+<div class="app" id="app">
+
+<button id="themeToggle">🌙</button>
+
+<!-- PROMPT -->
+<div class="card">
+  <textarea id="prompt" placeholder="Describe your image…"></textarea>
+</div>
+
+<!-- PRESETS -->
+<div class="card">
+  <strong>Presets</strong>
+  <div class="pills">
+    <div class="pill" onclick="addPreset('cinematic lighting')">Cinematic</div>
+    <div class="pill" onclick="addPreset('ultra realistic')">Realistic</div>
+    <div class="pill" onclick="addPreset('anime style')">Anime</div>
+    <div class="pill" onclick="addPreset('3d render')">3D</div>
+  </div>
+</div>
+
+<!-- ASPECT -->
+<div class="card">
+  <select id="ratio">
+    <option value="1:1">1:1</option>
+    <option value="4:3">4:3</option>
+    <option value="16:9">16:9</option>
+    <option value="9:16">9:16</option>
+  </select>
+</div>
+
+<!-- GENERATE -->
+<div class="card">
+  <button class="primary" onclick="generate()">Generate</button>
+</div>
+
+<!-- STATUS -->
+<div class="card" id="status" hidden></div>
+
+<!-- GALLERY -->
+<div class="card">
+  <div class="gallery" id="gallery"></div>
+</div>
+
+</div>
+
+<script>
+/* ===== THEME ===== */
+const toggle=document.getElementById("themeToggle");
+function setTheme(t){
+ document.body.classList.toggle("dark",t==="dark");
+ toggle.textContent=t==="dark"?"☀️":"🌙";
+ localStorage.setItem("theme",t);
+}
+toggle.onclick=()=>setTheme(
+ document.body.classList.contains("dark")?"light":"dark"
+);
+setTheme(localStorage.getItem("theme")||"light");
+
+/* ===== PRESET INSERT ===== */
+function addPreset(text){
+ const p=document.getElementById("prompt");
+ p.value = p.value ? p.value + ", " + text : text;
+}
+
+/* ===== GENERATE MOCK ===== */
+function generate(){
+ const s=document.getElementById("status");
+ s.hidden=false;
+ s.textContent="Generating…";
+ setTimeout(()=>{
+   s.textContent="Done ✔";
+   const img=document.createElement("img");
+   img.src="https://picsum.photos/400?"+Date.now();
+   document.getElementById("gallery").prepend(img);
+ },1500);
+}
+
+/* ===== SERVICE WORKER ===== */
+if("serviceWorker"in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("sw.js");
+ });
+}
+</script>
+
+</body>
+</html>
