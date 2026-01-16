@@ -1,199 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Picrok</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picrok – AI Image Generator</title>
 <link rel="manifest" href="manifest.json">
-
+<meta name="theme-color" content="#0f1115">
 <style>
-/* ===== THEME ===== */
-:root {
-  --bg:#f5f5f5;
-  --card:#ffffff;
-  --text:#111;
-  --accent:#6c63ff;
+:root{
+  --bg:#f4f4f4; --card:#fff; --text:#111; --accent:#4f8cff;
 }
-
-body.dark {
-  --bg:#0f1115;
-  --card:#1a1d24;
-  --text:#f1f1f1;
-}
-
-body {
-  margin:0;
-  font-family:system-ui, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* ===== APP FRAME ===== */
-.app {
-  position:relative;
-  height:100vh;
-  overflow-y:scroll;
-  padding:16px;
-  scrollbar-width:none;
-  -ms-overflow-style:none;
-}
-.app::-webkit-scrollbar { width:0; }
-
-/* ===== DARK TOGGLE ===== */
-#themeToggle {
-  position:absolute;
-  top:12px;
-  right:12px;
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:none;
-  background:var(--card);
-  color:var(--text);
-  font-size:20px;
-  cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.25);
-  z-index:1000;
-}
-
-/* ===== UI ===== */
-.card {
-  background:var(--card);
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:16px;
-}
-
-textarea {
-  width:100%;
-  min-height:120px;
-  resize:none;
-  padding:12px;
-  font-size:16px;
-}
-
-select, button {
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  font-size:14px;
-}
-
-button.primary {
-  background:var(--accent);
-  color:#fff;
-}
-
-/* ===== PRESETS ===== */
-.pills { display:flex; flex-wrap:wrap; gap:8px; }
-.pill {
-  padding:6px 12px;
-  border-radius:999px;
-  background:#ddd;
-  cursor:pointer;
-}
-body.dark .pill { background:#2a2d36; }
-
-/* ===== GALLERY ===== */
-.gallery {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-  gap:10px;
-}
-.gallery img {
-  width:100%;
-  border-radius:10px;
-  cursor:pointer;
-}
+body.dark{--bg:#0f1115;--card:#1a1d24;--text:#f1f1f1;}
+body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; display:flex; justify-content:center; padding:16px;}
+#app{position:relative;width:100%;max-width:420px;background:var(--card);border-radius:20px;padding:18px;max-height:95vh;overflow-y:auto;scrollbar-width:none;}
+#app::-webkit-scrollbar{display:none;}
+#themeToggle{position:absolute;top:12px;right:12px;width:42px;height:42px;border-radius:50%;border:none;background:var(--card);color:var(--text);font-size:20px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.3);}
+textarea,input,select{width:100%;box-sizing:border-box;padding:10px;border-radius:12px;border:none;background:rgba(0,0,0,.06);color:var(--text);}
+textarea{resize:none;height:90px;}
+button.primary{width:100%;padding:12px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;margin-top:10px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;}
+.pill{padding:8px;border-radius:12px;background:rgba(0,0,0,.08);text-align:center;cursor:pointer;}
+.pill.active{background:var(--accent);color:#fff;}
+#result{width:100%;border-radius:14px;margin-top:12px;}
+#gallery{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;}
+#gallery img{width:100%;border-radius:10px;cursor:pointer;}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:9999;}
+#overlay img{max-width:90%;border-radius:14px;}
+#overlay button{margin-top:10px;padding:10px 14px;border:none;border-radius:10px;}
+#progressWrap{display:none;margin-top:10px;border-radius:8px;overflow:hidden;height:10px;background:rgba(0,0,0,0.1);}
+#progressBar{width:0%;height:100%;background:var(--accent);transition:0.2s;}
+*{scrollbar-width:none;-ms-overflow-style:none;}
+*::-webkit-scrollbar{width:0;background:transparent;}
 </style>
 </head>
-
 <body>
-<div class="app" id="app">
-
+<div id="app">
 <button id="themeToggle">🌙</button>
-
-<!-- PROMPT -->
-<div class="card">
-  <textarea id="prompt" placeholder="Describe your image…"></textarea>
+<h3>Picrok</h3>
+<textarea id="prompt" placeholder="Describe your image"></textarea>
+<textarea id="negative" placeholder="Negative prompt"></textarea>
+<div style="display:flex;gap:8px;margin-top:8px">
+<select id="aspect">
+<option value="1:1">1:1</option>
+<option value="16:9">16:9</option>
+<option value="9:16">9:16</option>
+<option value="4:3">4:3</option>
+<option value="3:4">3:4</option>
+</select>
+<select id="size">
+<option>256</option>
+<option selected>512</option>
+<option>768</option>
+<option>1024</option>
+<option>1536</option>
+</select>
 </div>
 
-<!-- PRESETS -->
-<div class="card">
-  <strong>Presets</strong>
-  <div class="pills">
-    <div class="pill" onclick="addPreset('cinematic lighting')">Cinematic</div>
-    <div class="pill" onclick="addPreset('ultra realistic')">Realistic</div>
-    <div class="pill" onclick="addPreset('anime style')">Anime</div>
-    <div class="pill" onclick="addPreset('3d render')">3D</div>
-  </div>
+<h4>Presets</h4>
+<div class="grid" id="presets">
+  <div class="pill">Cinematic</div>
+  <div class="pill">Portrait</div>
+  <div class="pill">Landscape</div>
+  <div class="pill">Product</div>
+  <div class="pill">Macro</div>
+  <div class="pill">Street Photography</div>
+  <div class="pill">Fantasy Art</div>
+  <div class="pill">Sci-Fi</div>
+  <div class="pill">Concept Art</div>
 </div>
 
-<!-- ASPECT -->
-<div class="card">
-  <select id="ratio">
-    <option value="1:1">1:1</option>
-    <option value="4:3">4:3</option>
-    <option value="16:9">16:9</option>
-    <option value="9:16">9:16</option>
-  </select>
+<h4>Styles</h4>
+<div class="grid" id="styles">
+  <div class="pill">Photorealistic</div>
+  <div class="pill">Hyperrealistic</div>
+  <div class="pill">Ambient Occlusion</div>
+  <div class="pill">Ultra detailed</div>
+  <div class="pill">HDR</div>
+  <div class="pill">Soft lighting</div>
+  <div class="pill">Sharp focus</div>
+  <div class="pill">Depth of field</div>
+  <div class="pill">Studio lighting</div>
+  <div class="pill">High contrast</div>
+  <div class="pill">Minimal noise</div>
 </div>
 
-<!-- GENERATE -->
-<div class="card">
-  <button class="primary" onclick="generate()">Generate</button>
+<button class="primary" id="generate">Generate</button>
+<button class="primary" id="reset">Reset</button>
+<div id="progressWrap"><div id="progressBar"></div></div>
+<div id="status"></div>
+<img id="result">
+<div id="gallery"></div>
+
+<p style="text-align:center; margin-top:12px; font-size:11px; opacity:0.7;">
+  © Manik Roy 2026. All Rights Reserved.
+</p>
 </div>
 
-<!-- STATUS -->
-<div class="card" id="status" hidden></div>
-
-<!-- GALLERY -->
-<div class="card">
-  <div class="gallery" id="gallery"></div>
-</div>
-
+<div id="overlay">
+<img id="overlayImg">
+<button onclick="saveImage()">Save</button>
+<button onclick="deleteImage()">Delete</button>
+<button onclick="closeOverlay()">Close</button>
 </div>
 
 <script>
-/* ===== THEME ===== */
-const toggle=document.getElementById("themeToggle");
-function setTheme(t){
- document.body.classList.toggle("dark",t==="dark");
- toggle.textContent=t==="dark"?"☀️":"🌙";
- localStorage.setItem("theme",t);
-}
-toggle.onclick=()=>setTheme(
- document.body.classList.contains("dark")?"light":"dark"
-);
-setTheme(localStorage.getItem("theme")||"light");
+// Theme toggle
+const t=document.getElementById("themeToggle");
+function setTheme(m){document.body.classList.toggle("dark",m==="dark");t.textContent=m==="dark"?"☀️":"🌙";localStorage.theme=m;}
+setTheme(localStorage.theme||"light");
+t.onclick=()=>setTheme(document.body.classList.contains("dark")?"light":"dark");
 
-/* ===== PRESET INSERT ===== */
-function addPreset(text){
- const p=document.getElementById("prompt");
- p.value = p.value ? p.value + ", " + text : text;
-}
+// Pills
+document.querySelectorAll(".pill").forEach(p=>p.onclick=()=>p.classList.toggle("active"));
 
-/* ===== GENERATE MOCK ===== */
-function generate(){
- const s=document.getElementById("status");
- s.hidden=false;
- s.textContent="Generating…";
- setTimeout(()=>{
-   s.textContent="Done ✔";
-   const img=document.createElement("img");
-   img.src="https://picsum.photos/400?"+Date.now();
-   document.getElementById("gallery").prepend(img);
- },1500);
-}
+// Generate
+const generate=document.getElementById("generate");
+generate.onclick=()=>{
+ let p=document.getElementById("prompt").value;
+ if(!p.trim()){alert("Enter a prompt");return;}
+ let pr=[...document.querySelectorAll("#presets .active")].map(e=>e.textContent).join(",");
+ let st=[...document.querySelectorAll("#styles .active")].map(e=>e.textContent).join(",");
+ let final=p+(pr?","+pr:"")+(st?","+st:"");
+ let s=document.getElementById("size").value;
+ let a=document.getElementById("aspect").value;
+ let w=parseInt(s),h=parseInt(s);
+ if(a==="16:9")h=Math.round(s*9/16);
+ if(a==="9:16")w=Math.round(s*9/16);
+ if(a==="4:3")h=Math.round(s*3/4);
+ if(a==="3:4")w=Math.round(s*4/3);
+ const encoded=encodeURIComponent(final);
+ const src=`https://image.pollinations.ai/prompt/${encoded}?width=${w}&height=${h}&seed=${Date.now()}`;
 
-/* ===== SERVICE WORKER ===== */
-if("serviceWorker"in navigator){
- window.addEventListener("load",()=>{
-  navigator.serviceWorker.register("sw.js");
+ const progressWrap=document.getElementById("progressWrap");
+ const progressBar=document.getElementById("progressBar");
+ progressWrap.style.display="block";
+ progressBar.style.width="0%";
+ let prog=0;
+ const interval=setInterval(()=>{
+   prog+=10;
+   progressBar.style.width=prog+"%";
+   if(prog>=100){clearInterval(interval);progressWrap.style.display="none";document.getElementById("result").src=src;saveGallery(src);}
+ },80);
+};
+
+// Reset
+const resetBtn=document.getElementById("reset");
+resetBtn.onclick=()=>{
+ document.getElementById("prompt").value="";
+ document.getElementById("negative").value="";
+ document.querySelectorAll(".pill.active").forEach(p=>p.classList.remove("active"));
+ document.getElementById("result").src="";
+ document.getElementById("overlay").style.display="none";
+ document.getElementById("status").textContent="";
+};
+
+// Gallery
+function saveGallery(src){let g=JSON.parse(localStorage.gallery||"[]");g.unshift(src);localStorage.gallery=JSON.stringify(g);renderGallery();}
+function renderGallery(){
+ const gallery=document.getElementById("gallery"); gallery.innerHTML="";
+ (JSON.parse(localStorage.gallery||"[]")).forEach(src=>{
+  let i=document.createElement("img"); i.src=src; i.onclick=()=>openOverlay(src);
+  gallery.appendChild(i);
  });
 }
-</script>
+renderGallery();
 
+// Overlay
+let current="";
+function openOverlay(src){current=src;document.getElementById("overlay").style.display="flex";document.getElementById("overlayImg").src=src;}
+function closeOverlay(){document.getElementById("overlay").style.display="none";}
+function saveImage(){alert("Saved (localStorage)");}
+function deleteImage(){let g=JSON.parse(localStorage.gallery||"[]").filter(x=>x!==current);localStorage.gallery=JSON.stringify(g);closeOverlay();renderGallery();}
+
+// Service Worker
+if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js");}
+</script>
 </body>
 </html>
